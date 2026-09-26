@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Relay — Infrastructure for cloud engineers</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root{
+    --bg: #0A0E14;
+    --bg-raised: #0F141C;
+    --ink: #E9ECF2;
+    --ink-dim: #8A93A5;
+    --line: #1D2430;
+    --teal: #4FD1C5;
+    --violet: #8B7FF0;
+    --amber: #F0B429;
+  }
+
+  *{ margin:0; padding:0; box-sizing:border-box; }
+
+  html{ scroll-behavior:smooth; }
+
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+
+  a{ color:inherit; }
+
+  :focus-visible{
+    outline:2px solid var(--teal);
+    outline-offset:3px;
+  }
+
+  /* ---------- Nav ---------- */
+  nav{
+    position:fixed;
+    top:0; left:0; right:0;
+    z-index:50;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:28px clamp(24px, 5vw, 64px);
+    mix-blend-mode:difference;
+  }
+
+  .nav-mark{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:600;
+    font-size:1.1rem;
+    letter-spacing:-0.01em;
+  }
+
+  .nav-links{
+    display:flex;
+    gap:32px;
+    font-size:0.9rem;
+    list-style:none;
+  }
+
+  .nav-links a{
+    text-decoration:none;
+    opacity:0.85;
+    transition:opacity 0.2s ease;
+  }
+  .nav-links a:hover{ opacity:1; }
+
+  .nav-links li:first-child{ display:none; }
+
+  @media (max-width:640px){
+    .nav-links{ gap:18px; font-size:0.82rem; }
+  }
+
+  /* ---------- Hero ---------- */
+  .hero{
+    position:relative;
+    min-height:100svh;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding: 0 clamp(24px, 5vw, 64px);
+    overflow:hidden;
+  }
+
+  canvas#flow{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    z-index:0;
+    opacity:0.9;
+  }
+
+  .hero-veil{
+    position:absolute;
+    inset:0;
+    background:linear-gradient(180deg, rgba(10,14,20,0.15) 0%, rgba(10,14,20,0.35) 60%, rgba(10,14,20,0.85) 100%);
+    z-index:1;
+    pointer-events:none;
+  }
+
+  .hero-content{
+    position:relative;
+    z-index:2;
+    max-width:760px;
+    padding-top:80px;
+  }
+
+  .hero-kicker{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.82rem;
+    color:var(--teal);
+    margin-bottom:22px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+
+  .pulse-dot{
+    width:7px; height:7px;
+    border-radius:50%;
+    background:var(--teal);
+    box-shadow:0 0 0 0 rgba(79,209,197,0.6);
+    animation:pulse 2.2s ease-out infinite;
+  }
+
+  @keyframes pulse{
+    0%{ box-shadow:0 0 0 0 rgba(79,209,197,0.5); }
+    70%{ box-shadow:0 0 0 9px rgba(79,209,197,0); }
+    100%{ box-shadow:0 0 0 0 rgba(79,209,197,0); }
+  }
+
+  .hero h1{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:600;
+    font-size:clamp(2.6rem, 6.4vw, 4.6rem);
+    line-height:1.04;
+    letter-spacing:-0.025em;
+    max-width:14ch;
+  }
+
+  .hero p{
+    margin-top:26px;
+    font-size:clamp(1.05rem, 1.6vw, 1.25rem);
+    line-height:1.6;
+    color:var(--ink-dim);
+    max-width:46ch;
+  }
+
+  .hero-actions{
+    margin-top:40px;
+    display:flex;
+    align-items:center;
+    gap:22px;
+    flex-wrap:wrap;
+  }
+
+  .btn-primary{
+    font-family:'Inter', sans-serif;
+    font-weight:600;
+    font-size:0.95rem;
+    background:var(--ink);
+    color:var(--bg);
+    border:none;
+    padding:14px 26px;
+    border-radius:8px;
+    cursor:pointer;
+    transition:transform 0.18s ease, background 0.18s ease;
+  }
+  .btn-primary:hover{ transform:translateY(-2px); background:#fff; }
+  .btn-primary:active{ transform:translateY(0); }
+
+  .btn-ghost{
+    font-size:0.95rem;
+    text-decoration:none;
+    color:var(--ink);
+    border-bottom:1px solid var(--line);
+    padding-bottom:2px;
+    transition:border-color 0.2s ease, color 0.2s ease;
+  }
+  .btn-ghost:hover{ border-color:var(--ink-dim); }
+
+  .scroll-cue{
+    position:absolute;
+    bottom:36px;
+    left:clamp(24px, 5vw, 64px);
+    z-index:2;
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.72rem;
+    color:var(--ink-dim);
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+
+  .scroll-cue .line{
+    width:28px; height:1px;
+    background:var(--ink-dim);
+  }
+
+  /* ---------- Ticker ---------- */
+  .ticker-strip{
+    border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+    background:var(--bg-raised);
+    overflow:hidden;
+    position:relative;
+  }
+
+  .ticker-track{
+    display:flex;
+    width:max-content;
+    animation:scroll-left 34s linear infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .ticker-track{ animation-play-state:paused; }
+  }
+
+  .ticker-track:hover{ animation-play-state:paused; }
+
+  .ticker-item{
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+    padding:16px 34px;
+    border-right:1px solid var(--line);
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.85rem;
+    white-space:nowrap;
+    color:var(--ink-dim);
+  }
+
+  .ticker-item .region{ color:var(--ink); }
+  .ticker-item .latency{ color:var(--teal); }
+
+  /* ---------- Section: principles ---------- */
+  .section{
+    padding:120px clamp(24px, 5vw, 64px);
+    max-width:1240px;
+    margin:0 auto;
+  }
+
+  .section-head{
+    max-width:560px;
+    margin-bottom:72px;
+  }
+
+  .section-head h2{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:600;
+    font-size:clamp(1.7rem, 3vw, 2.3rem);
+    letter-spacing:-0.02em;
+    line-height:1.2;
+  }
+
+  .section-head p{
+    margin-top:16px;
+    color:var(--ink-dim);
+    font-size:1.05rem;
+    line-height:1.6;
+  }
+
+  .grid-three{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:0;
+    border-top:1px solid var(--line);
+  }
+
+  @media (max-width:860px){
+    .grid-three{ grid-template-columns:1fr; }
+  }
+
+  .principle{
+    padding:34px 30px 34px 0;
+    border-left:1px solid var(--line);
+    padding-left:28px;
+    position:relative;
+    transition:border-color 0.25s ease;
+  }
+
+  .principle:hover{ border-left-color:var(--teal); }
+
+  .principle .stat{
+    font-family:'JetBrains Mono', monospace;
+    font-size:2.1rem;
+    color:var(--teal);
+    display:block;
+    margin-bottom:18px;
+  }
+
+  .principle h3{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:500;
+    font-size:1.15rem;
+    margin-bottom:10px;
+  }
+
+  .principle p{
+    color:var(--ink-dim);
+    font-size:0.95rem;
+    line-height:1.6;
+  }
+
+  /* ---------- Footer / CTA ---------- */
+  footer{
+    padding:100px clamp(24px, 5vw, 64px) 48px;
+    border-top:1px solid var(--line);
+  }
+
+  .footer-cta{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    flex-wrap:wrap;
+    gap:32px;
+    padding-bottom:64px;
+  }
+
+  .footer-cta h2{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:600;
+    font-size:clamp(1.9rem, 4vw, 2.8rem);
+    letter-spacing:-0.02em;
+    max-width:16ch;
+    line-height:1.15;
+  }
+
+  .footer-bottom{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:28px;
+    border-top:1px solid var(--line);
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.78rem;
+    color:var(--ink-dim);
+    flex-wrap:wrap;
+    gap:12px;
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="nav-mark">Relay</span>
+  <ul class="nav-links">
+    <li><a href="#top">Relay</a></li>
+    <li><a href="#principles">Platform</a></li>
+    <li><a href="#footer">Get access</a></li>
+  </ul>
+</nav>
+
+<section class="hero" id="top">
+  <canvas id="flow"></canvas>
+  <div class="hero-veil"></div>
+  <div class="hero-content">
+    <div class="hero-kicker"><span class="pulse-dot"></span> 14 regions online · 42ms median</div>
+    <h1>Welcome. Your infrastructure just got quieter.</h1>
+    <p>Relay is the control plane for engineers who'd rather ship than babysit clusters. Provision, route, and observe every region from one place — no dashboards fighting each other.</p>
+    <div class="hero-actions">
+      <button class="btn-primary">Provision your first region</button>
+      <a class="btn-ghost" href="#principles">See how it's built</a>
+    </div>
+  </div>
+  <div class="scroll-cue"><span class="line"></span> scroll</div>
+</section>
+
+<div class="ticker-strip" aria-hidden="true">
+  <div class="ticker-track" id="tickerTrack"></div>
+</div>
+
+<section class="section" id="principles">
+  <div class="section-head">
+    <h2>Built the way you'd build it yourself</h2>
+    <p>No black boxes. Every routing decision, failover, and scaling event is inspectable, scriptable, and reversible.</p>
+  </div>
+  <div class="grid-three">
+    <div class="principle">
+      <span class="stat">99.99%</span>
+      <h3>Uptime, not a promise</h3>
+      <p>Multi-region failover happens in under 400ms, before your alerts even fire.</p>
+    </div>
+    <div class="principle">
+      <span class="stat">&lt;3min</span>
+      <h3>From repo to region</h3>
+      <p>Push, and Relay handles routing, TLS, and rollback without a config file in sight.</p>
+    </div>
+    <div class="principle">
+      <span class="stat">100%</span>
+      <h3>Traceable by default</h3>
+      <p>Every request carries its full path — no guessing which hop added the latency.</p>
+    </div>
+  </div>
+</section>
+
+<footer id="footer">
+  <div class="footer-cta">
+    <h2>Bring your stack. Leave the toil behind.</h2>
+    <button class="btn-primary">Start free — no card needed</button>
+  </div>
+  <div class="footer-bottom">
+    <span>Relay Systems</span>
+    <span>status.relay.dev — all systems operational</span>
+  </div>
+</footer>
+
+<script>
+  // ---------- Fluid mesh animation ----------
+  const canvas = document.getElementById('flow');
+  const ctx = canvas.getContext('2d');
+  let w, h, dpr;
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function resize(){
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    w = canvas.offsetWidth;
+    h = canvas.offsetHeight;
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  const colors = [
+    { r: 79, g: 209, b: 197 },   // teal
+    { r: 139, g: 127, b: 240 },  // violet
+    { r: 240, g: 180, b: 41 }    // amber (used sparingly)
+  ];
+
+  const blobCount = 5;
+  const blobs = Array.from({ length: blobCount }, (_, i) => ({
+    baseX: Math.random(),
+    baseY: Math.random() * 0.8,
+    radius: 0.22 + Math.random() * 0.16,
+    speed: 0.00018 + Math.random() * 0.00014,
+    offset: Math.random() * 1000,
+    color: colors[i % colors.length],
+    driftX: 0.06 + Math.random() * 0.05,
+    driftY: 0.05 + Math.random() * 0.04
+  }));
+
+  let mouse = { x: 0.5, y: 0.35, tx: 0.5, ty: 0.35 };
+  const hero = document.querySelector('.hero');
+  hero.addEventListener('mousemove', (e) => {
+    const rect = hero.getBoundingClientRect();
+    mouse.tx = (e.clientX - rect.left) / rect.width;
+    mouse.ty = (e.clientY - rect.top) / rect.height;
+  });
+
+  function draw(t){
+    mouse.x += (mouse.tx - mouse.x) * 0.04;
+    mouse.y += (mouse.ty - mouse.y) * 0.04;
+
+    ctx.clearRect(0, 0, w, h);
+    ctx.globalCompositeOperation = 'lighter';
+
+    blobs.forEach((b) => {
+      const angle = t * b.speed + b.offset;
+      const pull = 0.14; // how much the cursor tugs the field
+      const x = (b.baseX + Math.sin(angle) * b.driftX + (mouse.x - 0.5) * pull) * w;
+      const y = (b.baseY + Math.cos(angle * 0.8) * b.driftY + (mouse.y - 0.5) * pull) * h;
+      const r = b.radius * Math.max(w, h);
+
+      const grad = ctx.createRadialGradient(x, y, 0, x, y, r);
+      grad.addColorStop(0, `rgba(${b.color.r}, ${b.color.g}, ${b.color.b}, 0.32)`);
+      grad.addColorStop(1, `rgba(${b.color.r}, ${b.color.g}, ${b.color.b}, 0)`);
+
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    ctx.globalCompositeOperation = 'source-over';
+  }
+
+  if (reduceMotion) {
+    draw(0);
+  } else {
+    function loop(t){
+      draw(t);
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+  }
+
+  // ---------- Ticker content ----------
+  const regions = [
+    ['us-east-1', 24], ['eu-west-2', 31], ['ap-south-1', 58],
+    ['sa-east-1', 47], ['us-west-2', 19], ['ap-northeast-1', 63],
+    ['eu-central-1', 27], ['af-south-1', 71]
+  ];
+  const track = document.getElementById('tickerTrack');
+  const items = [...regions, ...regions].map(([name, ms]) => {
+    const el = document.createElement('div');
+    el.className = 'ticker-item';
+    el.innerHTML = `<span class="region">${name}</span><span class="latency">${ms}ms</span>`;
+    return el;
+  });
+  items.forEach(el => track.appendChild(el));
+</script>
+
+</body>
+</html>
